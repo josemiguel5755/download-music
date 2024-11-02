@@ -197,8 +197,6 @@
 #     window = MainWindow()
 #     window.show()
 #     sys.exit(app_qt.exec_())
-
-
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_socketio import SocketIO, emit
 import yt_dlp
@@ -207,16 +205,16 @@ import threading
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QMainWindow, QWidget
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtGui import QIcon
 import sys
 
-# Inicializar Flask con SocketIO especificando el modo asíncrono.
+# Inicializar Flask con SocketIO
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode='threading')  # Usa 'threading' como modo predeterminado
+socketio = SocketIO(app, async_mode='threading')
 
 # Ruta de almacenamiento de las descargas
 DOWNLOAD_FOLDER = 'downloads'
-if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -225,13 +223,16 @@ def index():
 @app.route('/download', methods=['POST'])
 def download_video():
     data = request.get_json()
-    video_url = data['url']
+    video_url = data.get('url')
+
+    if not video_url:
+        return jsonify({'error': 'No URL provided'}), 400
 
     try:
         ydl_opts = {
             'format': 'bestaudio/best',
-            'outtmpl': f'{DOWNLOAD_FOLDER}/%(title)s.%(ext)s',
-            'ffmpeg_location': r'c:\Users\jose miguel\OneDrive - República Digital Educación\Escritorio\JOSEMGUEL\ffmpeg-7.1-essentials_build\bin',  # Ajusta esta ruta si es necesario
+            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
+            'ffmpeg_location': r'C:\path\to\your\ffmpeg\bin',  # Ajusta esta ruta a la ubicación correcta de ffmpeg
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -276,14 +277,12 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(container)
         self.setWindowTitle("HODEN")
-        self.setWindowIcon(QIcon("static/imagenes/a-unique-logo-for-a-music-downloader-desktop-appli-8sgjAUswS7O9PjgC2o8B3w-6Phv0isPTaC-HUAXi2TdHg.ico"))  # Cambia esta ruta al icono
+        self.setWindowIcon(QIcon("static/imagenes/a-unique-logo-for-a-music-downloader-desktop-appli-8sgjAUswS7O9PjgC2o8B3w-6Phv0isPTaC-HUAXi2TdHg.ico"))
         self.resize(800, 600)
 
 if __name__ == '__main__':
-    from PyQt5.QtGui import QIcon  # Importa QIcon aquí
-
     flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True  # Daemon para que se cierre al salir de la aplicación principal
+    flask_thread.daemon = True
     flask_thread.start()
 
     app_qt = QApplication(sys.argv)
