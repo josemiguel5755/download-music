@@ -43,7 +43,6 @@
 // });
 
 
-
 document.getElementById('downloadForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -90,5 +89,5 @@ const socket = io.connect(location.protocol + '//' + document.domain + ':' + loc
 
 socket.on('download_progress', function(data) {
     const status = document.getElementById('status');
-    status.textContent = `Descargando... ${data.progress}%`;
+    status.textContent = `Descargando... ${data.progress}`;
 });

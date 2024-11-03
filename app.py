@@ -197,6 +197,9 @@
 #     window = MainWindow()
 #     window.show()
 #     sys.exit(app_qt.exec_())
+
+
+
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_socketio import SocketIO, emit
 import yt_dlp
@@ -232,7 +235,7 @@ def download_video():
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
-            'ffmpeg_location': r'C:\path\to\your\ffmpeg\bin',  # Ajusta esta ruta a la ubicación correcta de ffmpeg
+            'ffmpeg_location': r'C:\path\to\your\ffmpeg\bin',  # Asegúrate de ajustar esta ruta
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -257,7 +260,7 @@ def download_video():
 def progress_hook(d):
     if d['status'] == 'downloading':
         progress = d.get('_percent_str', '').strip()
-        socketio.emit('download_progress', {'progress': progress})
+        socketio.emit('download_progress', {'progress': progress}, broadcast=True)
 
 # Iniciar Flask en un hilo separado para evitar bloquear la interfaz PyQt
 def run_flask():
