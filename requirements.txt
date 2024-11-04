@@ -7,3 +7,4 @@ PyQtWebEngine-Qt5==5.15.2
 python-engineio==4.10.1
 python-socketio==5.11.4
 yt-dlp==2024.10.22
+gunicorn==23.0.0
