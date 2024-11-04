@@ -200,8 +200,103 @@
 
 
 
+# from flask import Flask, render_template, request, jsonify, send_file
+# from flask_socketio import SocketIO, emit
+# import yt_dlp
+# import os
+# import threading
+# from PyQt5.QtWidgets import QApplication, QVBoxLayout, QMainWindow, QWidget
+# from PyQt5.QtCore import QUrl
+# from PyQt5.QtWebEngineWidgets import QWebEngineView
+# from PyQt5.QtGui import QIcon
+# import sys
+
+# # Inicializar Flask con SocketIO
+# app = Flask(__name__)
+# socketio = SocketIO(app, async_mode='threading')
+
+# # Ruta de almacenamiento de las descargas
+# DOWNLOAD_FOLDER = 'downloads'
+# os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
+
+# @app.route('/download', methods=['POST'])
+# def download_video():
+#     data = request.get_json()
+#     video_url = data.get('url')
+
+#     if not video_url:
+#         return jsonify({'error': 'No URL provided'}), 400
+
+#     try:
+#         ydl_opts = {
+#             'format': 'bestaudio/best',
+#             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
+#             'ffmpeg_location': r'C:\path\to\your\ffmpeg\bin',  # Asegúrate de ajustar esta ruta
+#             'postprocessors': [{
+#                 'key': 'FFmpegExtractAudio',
+#                 'preferredcodec': 'mp3',
+#                 'preferredquality': '192',
+#             }],
+#             'progress_hooks': [progress_hook],
+#         }
+
+#         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+#             info_dict = ydl.extract_info(video_url, download=True)
+#             mp3_path = ydl.prepare_filename(info_dict).replace(".webm", ".mp3").replace(".m4a", ".mp3")
+
+#         if os.path.exists(mp3_path):
+#             return send_file(mp3_path, as_attachment=True)
+#         else:
+#             return jsonify({'error': 'Error during download'}), 500
+
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         return jsonify({'error': str(e)}), 500
+
+# def progress_hook(d):
+#     if d['status'] == 'downloading':
+#         progress = d.get('_percent_str', '').strip()
+#         socketio.emit('download_progress', {'progress': progress}, broadcast=True)
+
+# # Iniciar Flask en un hilo separado para evitar bloquear la interfaz PyQt
+# def run_flask():
+#     socketio.run(app, port=5000)
+
+# # Interfaz PyQt para mostrar la aplicación de Flask embebida
+# class MainWindow(QMainWindow):
+#     def __init__(self):
+#         super().__init__()
+#         self.browser = QWebEngineView()
+#         self.browser.setUrl(QUrl("http://localhost:5000"))
+
+#         container = QWidget()
+#         layout = QVBoxLayout()
+#         layout.addWidget(self.browser)
+#         container.setLayout(layout)
+
+#         self.setCentralWidget(container)
+#         self.setWindowTitle("HODEN")
+#         self.setWindowIcon(QIcon("static/imagenes/a-unique-logo-for-a-music-downloader-desktop-appli-8sgjAUswS7O9PjgC2o8B3w-6Phv0isPTaC-HUAXi2TdHg.ico"))
+#         self.resize(800, 600)
+
+# if __name__ == '__main__':
+#     flask_thread = threading.Thread(target=run_flask)
+#     flask_thread.daemon = True
+#     flask_thread.start()
+
+#     app_qt = QApplication(sys.argv)
+#     window = MainWindow()
+#     window.show()
+#     sys.exit(app_qt.exec_())
+
+
+
+
 from flask import Flask, render_template, request, jsonify, send_file
-from flask_socketio import SocketIO, emit
 import yt_dlp
 import os
 import threading
@@ -211,13 +306,10 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import QIcon
 import sys
 
-# Inicializar Flask con SocketIO
+# Inicializar Flask
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode='threading')
-
-# Ruta de almacenamiento de las descargas
-DOWNLOAD_FOLDER = 'downloads'
-os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+app.config['DOWNLOAD_FOLDER'] = 'downloads'
+os.makedirs(app.config['DOWNLOAD_FOLDER'], exist_ok=True)
 
 @app.route('/')
 def index():
@@ -234,8 +326,8 @@ def download_video():
     try:
         ydl_opts = {
             'format': 'bestaudio/best',
-            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
-            'ffmpeg_location': r'C:\path\to\your\ffmpeg\bin',  # Asegúrate de ajustar esta ruta
+            'outtmpl': os.path.join(app.config['DOWNLOAD_FOLDER'], '%(title)s.%(ext)s'),
+            'ffmpeg_location': r'c:\Users\jose miguel\OneDrive - República Digital Educación\Escritorio\JOSEMGUEL\ffmpeg-7.1-essentials_build\bin',  # Ajusta esta ruta
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -260,11 +352,11 @@ def download_video():
 def progress_hook(d):
     if d['status'] == 'downloading':
         progress = d.get('_percent_str', '').strip()
-        socketio.emit('download_progress', {'progress': progress}, broadcast=True)
+        print(f"Download progress: {progress}")  # Se puede ajustar para enviar actualizaciones si es necesario
 
 # Iniciar Flask en un hilo separado para evitar bloquear la interfaz PyQt
 def run_flask():
-    socketio.run(app, port=5000)
+    app.run(port=5000)
 
 # Interfaz PyQt para mostrar la aplicación de Flask embebida
 class MainWindow(QMainWindow):
